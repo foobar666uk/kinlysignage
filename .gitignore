@@ -1,0 +1,24 @@
+# Node dependencies
+node_modules/
+KinlySignageContentApp/node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+
+# Local VS Code and Copilot artifacts
+.vscode/
+.agents/
+
+# Local tooling and generated assets
+.tools/
+.brand-tools/
+.chrome-brand-pdf-profile/
+.chrome-brand-pdf-shot1/
+.chrome-brand-pdf-shot2/
+.chrome-brand-pdf-shot3/

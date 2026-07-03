@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "path": "KinlySignageContentApp"
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.DS_Store": true
+    }
+  }
+}

@@ -1,0 +1,6 @@
+node_modules/
+.env
+dist/
+site.tar.gz
+preview-server.log
+preview-server.err.log
