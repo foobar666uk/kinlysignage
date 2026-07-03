@@ -22,3 +22,8 @@ Thumbs.db
 .chrome-brand-pdf-shot1/
 .chrome-brand-pdf-shot2/
 .chrome-brand-pdf-shot3/
+
+# App-local browser profiles and logs
+KinlySignageContentApp/.chrome-*/
+KinlySignageContentApp/travel-server.log
+KinlySignageContentApp/travel-server.err.log
