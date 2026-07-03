@@ -1,4 +1,9 @@
-const { XMLParser } = require("fast-xml-parser");
+let XMLParser;
+try {
+  ({ XMLParser } = require("fast-xml-parser"));
+} catch (error) {
+  console.error("fast-xml-parser failed to load; weather/news endpoints will use fallback payloads", error);
+}
 
 const UK_TIME_ZONE = "Europe/London";
 const CACHE_TTL_MS = 5 * 60 * 1000;
@@ -33,11 +38,13 @@ const weatherCache = {
   payload: null,
 };
 
-const rssParser = new XMLParser({
-  ignoreAttributes: false,
-  parseTagValue: true,
-  trimValues: true,
-});
+const rssParser = XMLParser
+  ? new XMLParser({
+    ignoreAttributes: false,
+    parseTagValue: true,
+    trimValues: true,
+  })
+  : null;
 
 function normaliseSite(site) {
   if (typeof site !== "string") {
@@ -199,6 +206,10 @@ function extractObservationDetails(title) {
 }
 
 async function getBbcWeather() {
+  if (!rssParser) {
+    return buildWeatherFallbackPayload();
+  }
+
   const now = Date.now();
   if (weatherCache.payload && now - weatherCache.cachedAt < WEATHER_CACHE_TTL_MS) {
     return weatherCache.payload;
@@ -277,6 +288,10 @@ async function getBbcWeather() {
 }
 
 async function getBbcNews(limit = 3) {
+  if (!rssParser) {
+    return buildNewsFallbackPayload(limit);
+  }
+
   const now = Date.now();
   if (newsCache.payload && now - newsCache.cachedAt < NEWS_CACHE_TTL_MS) {
     return {
