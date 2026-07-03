@@ -1,8 +1,10 @@
-let XMLParser;
+const https = require("https");
+let XMLParser = null;
+
 try {
-  ({ XMLParser } = require("fast-xml-parser"));
+  XMLParser = require("fast-xml-parser").XMLParser;
 } catch (error) {
-  console.error("fast-xml-parser failed to load; weather/news endpoints will use fallback payloads", error);
+  console.error("fast-xml-parser is unavailable; RSS parsing will use fallback payloads", error);
 }
 
 const UK_TIME_ZONE = "Europe/London";
@@ -11,8 +13,8 @@ const NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
 const BBC_RSS_URL = "https://feeds.bbci.co.uk/news/rss.xml";
 const BBC_WEATHER_LOCATION_ID = "2636534";
-const BBC_WEATHER_FORECAST_URL = `https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/${BBC_WEATHER_LOCATION_ID}`;
-const BBC_WEATHER_OBSERVATION_URL = `https://weather-broker-cdn.api.bbci.co.uk/en/observation/rss/${BBC_WEATHER_LOCATION_ID}`;
+const BBC_WEATHER_FORECAST_URL = "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/" + BBC_WEATHER_LOCATION_ID;
+const BBC_WEATHER_OBSERVATION_URL = "https://weather-broker-cdn.api.bbci.co.uk/en/observation/rss/" + BBC_WEATHER_LOCATION_ID;
 const DEFAULT_SITE = "sunbury";
 const STATUS_PRIORITY = {
   Grey: 0,
@@ -29,14 +31,8 @@ const SITE_CONFIG = {
 };
 
 const summaryCache = new Map();
-const newsCache = {
-  cachedAt: 0,
-  payload: null,
-};
-const weatherCache = {
-  cachedAt: 0,
-  payload: null,
-};
+const newsCache = { cachedAt: 0, payload: null };
+const weatherCache = { cachedAt: 0, payload: null };
 
 const rssParser = XMLParser
   ? new XMLParser({
@@ -45,6 +41,33 @@ const rssParser = XMLParser
     trimValues: true,
   })
   : null;
+
+function requestText(url) {
+  return new Promise(function (resolve, reject) {
+    const req = https.get(url, {
+      headers: {
+        "user-agent": "KinlySignageContentApp/1.0",
+        accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
+      },
+    }, function (res) {
+      let data = "";
+      res.setEncoding("utf8");
+      res.on("data", function (chunk) { data += chunk; });
+      res.on("end", function () {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(data);
+        } else {
+          reject(new Error("Request failed with status " + res.statusCode + " for " + url));
+        }
+      });
+    });
+
+    req.on("error", reject);
+    req.setTimeout(20000, function () {
+      req.destroy(new Error("Request timeout for " + url));
+    });
+  });
+}
 
 function normaliseSite(site) {
   if (typeof site !== "string") {
@@ -67,7 +90,7 @@ function stripHtml(value) {
     return "";
   }
 
-  return value.replace(/<[^>]*>/gu, "").replace(/\s+/gu, " ").trim();
+  return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }
 
 function truncateText(text, maxLength) {
@@ -75,38 +98,40 @@ function truncateText(text, maxLength) {
     return text;
   }
 
-  return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
+  return text.slice(0, Math.max(0, maxLength - 1)).trimEnd() + "...";
 }
 
 function resolveNewsImageUrl(item) {
-  const mediaThumbnail = asArray(item?.["media:thumbnail"])
-    .map((entry) => entry?.["@_url"])
-    .find((value) => typeof value === "string" && value.trim());
-
-  if (mediaThumbnail) {
-    return String(mediaThumbnail).trim();
+  const thumbnails = asArray(item && item["media:thumbnail"]);
+  for (let i = 0; i < thumbnails.length; i += 1) {
+    const url = thumbnails[i] && thumbnails[i]["@_url"];
+    if (typeof url === "string" && url.trim()) {
+      return url.trim();
+    }
   }
 
-  const mediaContent = asArray(item?.["media:content"])
-    .map((entry) => entry?.["@_url"])
-    .find((value) => typeof value === "string" && value.trim());
-
-  if (mediaContent) {
-    return String(mediaContent).trim();
+  const media = asArray(item && item["media:content"]);
+  for (let j = 0; j < media.length; j += 1) {
+    const mediaUrl = media[j] && media[j]["@_url"];
+    if (typeof mediaUrl === "string" && mediaUrl.trim()) {
+      return mediaUrl.trim();
+    }
   }
 
-  const enclosureImage = asArray(item?.enclosure)
-    .find((entry) => typeof entry?.["@_type"] === "string" && entry["@_type"].startsWith("image/"))
-    ?.["@_url"];
-
-  if (typeof enclosureImage === "string" && enclosureImage.trim()) {
-    return enclosureImage.trim();
+  const enclosures = asArray(item && item.enclosure);
+  for (let k = 0; k < enclosures.length; k += 1) {
+    const entry = enclosures[k];
+    const type = entry && entry["@_type"];
+    const enclosureUrl = entry && entry["@_url"];
+    if (typeof type === "string" && type.indexOf("image/") === 0 && typeof enclosureUrl === "string" && enclosureUrl.trim()) {
+      return enclosureUrl.trim();
+    }
   }
 
   return "";
 }
 
-function buildNewsFallbackPayload(limit = 3) {
+function buildNewsFallbackPayload(limit) {
   const fallbackItems = [
     {
       title: "BBC headlines are temporarily unavailable",
@@ -114,6 +139,7 @@ function buildNewsFallbackPayload(limit = 3) {
       link: "https://www.bbc.co.uk/news",
       publishedAt: new Date().toISOString(),
       source: "BBC News",
+      imageUrl: "",
     },
     {
       title: "Please check back shortly",
@@ -121,6 +147,7 @@ function buildNewsFallbackPayload(limit = 3) {
       link: "https://www.bbc.co.uk/news",
       publishedAt: new Date().toISOString(),
       source: "BBC News",
+      imageUrl: "",
     },
   ];
 
@@ -128,7 +155,7 @@ function buildNewsFallbackPayload(limit = 3) {
     source: "BBC News",
     feedUrl: BBC_RSS_URL,
     lastUpdated: getCurrentUkTimestamp(),
-    items: fallbackItems.slice(0, limit),
+    items: fallbackItems.slice(0, limit || 3),
   };
 }
 
@@ -150,7 +177,7 @@ function extractFirstCelsiusValue(value) {
     return null;
   }
 
-  const match = value.match(/(-?\d+)\s*°C/u);
+  const match = value.match(/(-?\d+)\s*\u00B0C/u);
   return match ? Number.parseInt(match[1], 10) : null;
 }
 
@@ -159,7 +186,7 @@ function extractLabelledCelsiusValue(value, label) {
     return null;
   }
 
-  const pattern = new RegExp(`${label}:\\s*(-?\\d+)\\s*°C`, "iu");
+  const pattern = new RegExp(label + ":\\s*(-?\\d+)\\s*\\u00B0C", "iu");
   const match = value.match(pattern);
   return match ? Number.parseInt(match[1], 10) : null;
 }
@@ -170,7 +197,7 @@ function extractConditionFromForecastTitle(title) {
   }
 
   const match = title.match(/^[^:]+:\s*([^,]+),/u);
-  if (match?.[1]) {
+  if (match && match[1]) {
     return match[1].trim();
   }
 
@@ -179,13 +206,10 @@ function extractConditionFromForecastTitle(title) {
 
 function extractObservationDetails(title) {
   if (typeof title !== "string") {
-    return {
-      condition: "",
-      temperatureC: null,
-    };
+    return { condition: "", temperatureC: null };
   }
 
-  const fullMatch = title.match(/:\s*([^,]+),\s*(-?\d+)\s*°C/u);
+  const fullMatch = title.match(/:\s*([^,]+),\s*(-?\d+)\s*\u00B0C/u);
   if (!fullMatch) {
     return {
       condition: "",
@@ -195,82 +219,69 @@ function extractObservationDetails(title) {
 
   const rawCondition = String(fullMatch[1]).trim();
   const temperatureC = Number.parseInt(fullMatch[2], 10);
-  const condition = rawCondition.includes(":")
-    ? rawCondition.slice(rawCondition.lastIndexOf(":") + 1).trim()
-    : rawCondition;
+  const colonIndex = rawCondition.lastIndexOf(":");
+  const condition = colonIndex >= 0 ? rawCondition.slice(colonIndex + 1).trim() : rawCondition;
 
   return {
-    condition,
-    temperatureC,
+    condition: condition,
+    temperatureC: temperatureC,
   };
 }
 
 async function getBbcWeather() {
-  if (!rssParser) {
-    return buildWeatherFallbackPayload();
-  }
-
   const now = Date.now();
   if (weatherCache.payload && now - weatherCache.cachedAt < WEATHER_CACHE_TTL_MS) {
     return weatherCache.payload;
   }
 
+  if (!rssParser) {
+    const fallbackNoParser = buildWeatherFallbackPayload();
+    weatherCache.cachedAt = now;
+    weatherCache.payload = fallbackNoParser;
+    return fallbackNoParser;
+  }
+
   try {
-    const [forecastResponse, observationResponse] = await Promise.all([
-      fetch(BBC_WEATHER_FORECAST_URL, {
-        headers: {
-          "user-agent": "KinlySignageContentApp/1.0",
-          accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
-        },
-      }),
-      fetch(BBC_WEATHER_OBSERVATION_URL, {
-        headers: {
-          "user-agent": "KinlySignageContentApp/1.0",
-          accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
-        },
-      }),
+    const values = await Promise.all([
+      requestText(BBC_WEATHER_FORECAST_URL),
+      requestText(BBC_WEATHER_OBSERVATION_URL),
     ]);
 
-    if (!forecastResponse.ok) {
-      throw new Error(`BBC weather forecast responded with status ${forecastResponse.status}`);
-    }
-
-    if (!observationResponse.ok) {
-      throw new Error(`BBC weather observation responded with status ${observationResponse.status}`);
-    }
-
-    const forecastXml = await forecastResponse.text();
-    const observationXml = await observationResponse.text();
+    const forecastXml = values[0];
+    const observationXml = values[1];
 
     const forecastParsed = rssParser.parse(forecastXml);
     const observationParsed = rssParser.parse(observationXml);
 
-    const forecastItems = asArray(forecastParsed?.rss?.channel?.item);
+    const forecastChannel = forecastParsed && forecastParsed.rss && forecastParsed.rss.channel;
+    const observationChannel = observationParsed && observationParsed.rss && observationParsed.rss.channel;
+
+    const forecastItems = asArray(forecastChannel && forecastChannel.item);
     const todayForecast = forecastItems[0] || {};
 
-    const observationItem = asArray(observationParsed?.rss?.channel?.item)[0] || {};
+    const observationItem = asArray(observationChannel && observationChannel.item)[0] || {};
 
-    const forecastTitle = String(todayForecast?.title || "").trim();
-    const forecastDescription = String(todayForecast?.description || "").trim();
-    const observationTitle = String(observationItem?.title || "").trim();
+    const forecastTitle = String(todayForecast.title || "").trim();
+    const forecastDescription = String(todayForecast.description || "").trim();
+    const observationTitle = String(observationItem.title || "").trim();
 
-    const { condition: observedCondition, temperatureC } = extractObservationDetails(observationTitle);
+    const details = extractObservationDetails(observationTitle);
     const highC = extractLabelledCelsiusValue(forecastTitle, "Maximum Temperature")
-      ?? extractLabelledCelsiusValue(forecastDescription, "Maximum Temperature");
+      || extractLabelledCelsiusValue(forecastDescription, "Maximum Temperature");
     const lowC = extractLabelledCelsiusValue(forecastTitle, "Minimum Temperature")
-      ?? extractLabelledCelsiusValue(forecastDescription, "Minimum Temperature");
+      || extractLabelledCelsiusValue(forecastDescription, "Minimum Temperature");
 
-    const locationTitle = String(forecastParsed?.rss?.channel?.title || "");
+    const locationTitle = String((forecastChannel && forecastChannel.title) || "");
     const locationMatch = locationTitle.match(/Forecast for\s+(.+?),\s*GB/iu);
-    const location = locationMatch?.[1]?.trim() || "Sunbury";
+    const location = locationMatch && locationMatch[1] ? locationMatch[1].trim() : "Sunbury";
 
     const payload = {
       source: "BBC Weather",
-      location,
-      condition: observedCondition || extractConditionFromForecastTitle(forecastTitle),
-      temperatureC,
-      highC,
-      lowC,
+      location: location,
+      condition: details.condition || extractConditionFromForecastTitle(forecastTitle),
+      temperatureC: details.temperatureC,
+      highC: highC,
+      lowC: lowC,
       lastUpdated: getCurrentUkTimestamp(),
       feedUrl: BBC_WEATHER_FORECAST_URL,
     };
@@ -287,78 +298,78 @@ async function getBbcWeather() {
   }
 }
 
-async function getBbcNews(limit = 3) {
-  if (!rssParser) {
-    return buildNewsFallbackPayload(limit);
-  }
-
+async function getBbcNews(limit) {
+  const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(limit, 1), 8) : 3;
   const now = Date.now();
+
   if (newsCache.payload && now - newsCache.cachedAt < NEWS_CACHE_TTL_MS) {
     return {
-      ...newsCache.payload,
-      items: newsCache.payload.items.slice(0, limit),
+      source: newsCache.payload.source,
+      feedUrl: newsCache.payload.feedUrl,
+      lastUpdated: newsCache.payload.lastUpdated,
+      items: newsCache.payload.items.slice(0, safeLimit),
     };
   }
 
+  if (!rssParser) {
+    const fallbackNoParser = buildNewsFallbackPayload(safeLimit);
+    newsCache.cachedAt = now;
+    newsCache.payload = fallbackNoParser;
+    return fallbackNoParser;
+  }
+
   try {
-    const response = await fetch(BBC_RSS_URL, {
-      headers: {
-        "user-agent": "KinlySignageContentApp/1.0",
-        accept: "application/rss+xml, application/xml;q=0.9, text/xml;q=0.8",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`BBC RSS responded with status ${response.status}`);
-    }
-
-    const xml = await response.text();
+    const xml = await requestText(BBC_RSS_URL);
     const parsed = rssParser.parse(xml);
-    const rawItems = asArray(parsed?.rss?.channel?.item);
+    const channel = parsed && parsed.rss && parsed.rss.channel;
+    const rawItems = asArray(channel && channel.item);
 
     const items = rawItems
-      .map((item) => {
+      .map(function (item) {
         const summarySource =
-          stripHtml(item?.description) ||
-          stripHtml(item?.summary) ||
+          stripHtml(item && item.description) ||
+          stripHtml(item && item.summary) ||
           "Read the full story on BBC News.";
 
         return {
-          title: String(item?.title || "BBC headline").trim(),
+          title: String((item && item.title) || "BBC headline").trim(),
           summary: truncateText(summarySource, 160),
-          link: String(item?.link || "https://www.bbc.co.uk/news").trim(),
-          publishedAt: String(item?.pubDate || new Date().toISOString()).trim(),
+          link: String((item && item.link) || "https://www.bbc.co.uk/news").trim(),
+          publishedAt: String((item && item.pubDate) || new Date().toISOString()).trim(),
           source: "BBC News",
           imageUrl: resolveNewsImageUrl(item),
         };
       })
-      .filter((item) => item.title)
+      .filter(function (item) { return item.title; })
       .slice(0, 8);
 
     const payload = {
       source: "BBC News",
       feedUrl: BBC_RSS_URL,
       lastUpdated: getCurrentUkTimestamp(),
-      items: items.length ? items : buildNewsFallbackPayload(limit).items,
+      items: items.length ? items : buildNewsFallbackPayload(safeLimit).items,
     };
 
     newsCache.cachedAt = now;
     newsCache.payload = payload;
 
     return {
-      ...payload,
-      items: payload.items.slice(0, limit),
+      source: payload.source,
+      feedUrl: payload.feedUrl,
+      lastUpdated: payload.lastUpdated,
+      items: payload.items.slice(0, safeLimit),
     };
   } catch (error) {
     console.error("Unable to fetch BBC RSS feed:", error);
-    const fallback = buildNewsFallbackPayload(limit);
+    const fallback = buildNewsFallbackPayload(safeLimit);
     newsCache.cachedAt = now;
     newsCache.payload = fallback;
     return fallback;
   }
 }
 
-function getCurrentUkTimestamp(date = new Date()) {
+function getCurrentUkTimestamp(date) {
+  const value = date || new Date();
   const dateParts = new Intl.DateTimeFormat("en-GB", {
     timeZone: UK_TIME_ZONE,
     year: "numeric",
@@ -368,23 +379,30 @@ function getCurrentUkTimestamp(date = new Date()) {
     minute: "2-digit",
     second: "2-digit",
     hourCycle: "h23",
-  }).formatToParts(date);
+  }).formatToParts(value);
 
   const values = {};
-  for (const part of dateParts) {
+  for (let i = 0; i < dateParts.length; i += 1) {
+    const part = dateParts[i];
     if (part.type !== "literal") {
       values[part.type] = part.value;
     }
   }
 
-  const zonePart = new Intl.DateTimeFormat("en-GB", {
+  const zoneParts = new Intl.DateTimeFormat("en-GB", {
     timeZone: UK_TIME_ZONE,
     timeZoneName: "longOffset",
-  })
-    .formatToParts(date)
-    .find((part) => part.type === "timeZoneName")?.value;
+  }).formatToParts(value);
 
-  return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}${formatOffset(zonePart)}`;
+  let zonePart = "";
+  for (let j = 0; j < zoneParts.length; j += 1) {
+    if (zoneParts[j].type === "timeZoneName") {
+      zonePart = zoneParts[j].value;
+      break;
+    }
+  }
+
+  return values.year + "-" + values.month + "-" + values.day + "T" + values.hour + ":" + values.minute + ":" + values.second + formatOffset(zonePart);
 }
 
 function formatOffset(zonePart) {
@@ -397,8 +415,10 @@ function formatOffset(zonePart) {
     return "+00:00";
   }
 
-  const [, sign, hours, minutes = "00"] = match;
-  return `${sign}${hours.padStart(2, "0")}:${minutes}`;
+  const sign = match[1];
+  const hours = match[2];
+  const minutes = match[3] || "00";
+  return sign + hours.padStart(2, "0") + ":" + minutes;
 }
 
 function calculateOverallStatus(items) {
@@ -409,8 +429,8 @@ function calculateOverallStatus(items) {
   let highestPriority = -1;
   let highestStatus = "Grey";
 
-  for (const item of items) {
-    const status = normaliseStatus(item?.status);
+  for (let i = 0; i < items.length; i += 1) {
+    const status = normaliseStatus(items[i] && items[i].status);
     const priority = STATUS_PRIORITY[status];
 
     if (priority > highestPriority) {
@@ -448,29 +468,28 @@ async function getTrafficSummary(site) {
     const siteConfig = SITE_CONFIG[normalisedSite];
 
     if (!siteConfig) {
-      throw new Error(`Unsupported site requested: ${normalisedSite}`);
+      throw new Error("Unsupported site requested: " + normalisedSite);
     }
 
-    const [nationalHighwaysItems, streetManagerItems] = await Promise.all([
+    const values = await Promise.all([
       getNationalHighwaysItems(normalisedSite),
       getStreetManagerItems(normalisedSite),
     ]);
 
-    const items = [...nationalHighwaysItems, ...streetManagerItems];
+    const items = values[0].concat(values[1]);
     const overallStatus = calculateOverallStatus(items);
     const payload = {
       siteName: siteConfig.siteName,
       headline: buildHeadline(overallStatus),
-      overallStatus,
+      overallStatus: overallStatus,
       lastUpdated: getCurrentUkTimestamp(),
-      items,
-      disclaimer:
-        "Traffic information may change quickly. Please check your route before travelling.",
+      items: items,
+      disclaimer: "Traffic information may change quickly. Please check your route before travelling.",
     };
 
     summaryCache.set(normalisedSite, {
       cachedAt: now,
-      payload,
+      payload: payload,
     });
 
     return payload;
@@ -496,15 +515,13 @@ async function getNationalHighwaysItems(site) {
     {
       label: "M3 Eastbound",
       status: "Amber",
-      summary:
-        "Delays reported around Sunbury Cross on the approach towards London.",
+      summary: "Delays reported around Sunbury Cross on the approach towards London.",
       source: "National Highways",
     },
     {
       label: "M3 Westbound",
       status: "Green",
-      summary:
-        "No major incidents currently reported towards Staines and the M25 link roads.",
+      summary: "No major incidents currently reported towards Staines and the M25 link roads.",
       source: "National Highways",
     },
   ];
@@ -519,8 +536,7 @@ async function getStreetManagerItems(site) {
     {
       label: "Local Roads",
       status: "Amber",
-      summary:
-        "Roadworks active near the office. Please check your route before leaving.",
+      summary: "Roadworks active near the office. Please check your route before leaving.",
       source: "DfT Street Manager",
     },
   ];
@@ -528,22 +544,22 @@ async function getStreetManagerItems(site) {
 
 function buildFallbackSummary(site) {
   const siteConfig = SITE_CONFIG[site] || SITE_CONFIG[DEFAULT_SITE];
-  const items = siteConfig.defaultItems.map((label) => ({
-    label,
-    status: "Grey",
-    summary:
-      "Live traffic information is temporarily unavailable. Please check your route before travelling.",
-    source: label === "Local Roads" ? "DfT Street Manager" : "National Highways",
-  }));
+  const items = siteConfig.defaultItems.map(function (label) {
+    return {
+      label: label,
+      status: "Grey",
+      summary: "Live traffic information is temporarily unavailable. Please check your route before travelling.",
+      source: label === "Local Roads" ? "DfT Street Manager" : "National Highways",
+    };
+  });
 
   return {
     siteName: siteConfig.siteName,
     headline: siteConfig.fallbackMessage,
     overallStatus: "Grey",
     lastUpdated: getCurrentUkTimestamp(),
-    items,
-    disclaimer:
-      "Traffic information may change quickly. Please check your route before travelling.",
+    items: items,
+    disclaimer: "Traffic information may change quickly. Please check your route before travelling.",
   };
 }
 
@@ -553,7 +569,7 @@ function normaliseStatus(status) {
   }
 
   const trimmed = status.trim();
-  if (trimmed in STATUS_PRIORITY) {
+  if (Object.prototype.hasOwnProperty.call(STATUS_PRIORITY, trimmed)) {
     return trimmed;
   }
 
@@ -561,7 +577,7 @@ function normaliseStatus(status) {
 }
 
 module.exports = {
-  getTrafficSummary,
-  getBbcNews,
-  getBbcWeather,
+  getTrafficSummary: getTrafficSummary,
+  getBbcNews: getBbcNews,
+  getBbcWeather: getBbcWeather,
 };
