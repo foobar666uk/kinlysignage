@@ -2,6 +2,11 @@
 
 KinlySignageContentApp is a reception dashboard concept for Appspace Web View cards. The local travel update is now one component within a calmer master page, with room for additional widgets such as weather, news, guest sign-in, and guest Wi-Fi details.
 
+This project is now structured for Azure Static Web Apps (SWA):
+
+- Frontend static app: `public/`
+- Backend API (Azure Functions): `api/`
+
 ## What the application does
 
 - Serves a modular reception dashboard from an Express backend
@@ -55,7 +60,7 @@ KinlySignageContentApp/
 npm install
 ```
 
-## Run locally
+## Run locally (Express)
 
 ```sh
 npm start
@@ -63,12 +68,27 @@ npm start
 
 Then open `http://localhost:3000`.
 
-## API endpoint
+## Run locally (Azure SWA)
+
+If you want local parity with Azure Static Web Apps routing and serverless APIs:
+
+1. Install Azure Static Web Apps CLI (`@azure/static-web-apps-cli`)
+2. From repository root run:
+
+```sh
+swa start KinlySignageContentApp/public --api-location KinlySignageContentApp/api
+```
+
+This serves the frontend and the `/api/*` Functions together.
+
+## API endpoints
 
 The backend exposes:
 
 ```text
 GET /api/traffic-summary?site=sunbury
+GET /api/news?limit=8
+GET /api/weather
 ```
 
 ## Future data integrations

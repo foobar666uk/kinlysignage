@@ -1,0 +1,8 @@
+{
+  "name": "kinly-signage-api",
+  "private": true,
+  "main": "index.js",
+  "dependencies": {
+    "fast-xml-parser": "^5.9.3"
+  }
+}
