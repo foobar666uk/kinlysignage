@@ -203,6 +203,7 @@ body {
   margin-top: 8px;
   font-size: 1.5rem;
   color: rgba(225, 231, 234, 0.82);
+  white-space: nowrap;
 }
 
 .content-overlay {
