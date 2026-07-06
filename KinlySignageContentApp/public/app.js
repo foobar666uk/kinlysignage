@@ -18,7 +18,6 @@ const elements = {
   weatherRange: document.getElementById("weather-range"),
   trafficDetails: document.getElementById("traffic-details"),
   newsSlide: document.getElementById("news-slide"),
-  newsDots: document.getElementById("news-dots"),
   newsPrev: document.getElementById("news-prev"),
   newsNext: document.getElementById("news-next"),
   logoImage: document.getElementById("kinly-logo-image"),
@@ -227,23 +226,6 @@ function renderWeather(weatherPayload) {
   }
 }
 
-function renderNewsDots(total, activeIndex) {
-  if (!elements.newsDots) {
-    return;
-  }
-
-  if (total <= 1) {
-    elements.newsDots.innerHTML = "";
-    return;
-  }
-
-  const dotCount = Math.min(total, 6);
-  elements.newsDots.innerHTML = Array.from({ length: dotCount }, (_, index) => {
-    const isActive = index === (activeIndex % dotCount);
-    return `<span class="news-dot${isActive ? " is-active" : ""}"></span>`;
-  }).join("");
-}
-
 function renderNewsSlide(item) {
   if (!elements.newsSlide) {
     return;
@@ -279,7 +261,6 @@ function showNewsIndex(index) {
 
   newsState.index = (index + newsState.items.length) % newsState.items.length;
   renderNewsSlide(newsState.items[newsState.index]);
-  renderNewsDots(newsState.items.length, newsState.index);
 }
 
 function advanceNewsSlide(step = 1) {

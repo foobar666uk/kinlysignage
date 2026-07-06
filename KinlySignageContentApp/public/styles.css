@@ -672,24 +672,6 @@ body {
   right: 18px;
 }
 
-.news-dots {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.news-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(225, 231, 234, 0.4);
-}
-
-.news-dot.is-active {
-  background: var(--accent);
-}
-
 .welcome-footer {
   display: grid;
   grid-template-columns: 1fr auto 280px;
