@@ -246,22 +246,24 @@ body {
 }
 
 .checkin-card {
+  padding: 22px 22px 20px;
   background:
     radial-gradient(circle at 18% 62%, rgba(37, 20, 154, 0.35), transparent 48%),
     linear-gradient(150deg, rgba(37, 20, 154, 0.2), var(--card));
 }
 
 .checkin-visual {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   display: grid;
-  grid-template-columns: 430px 1fr;
-  align-items: center;
-  gap: 22px;
+  grid-template-columns: 392px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
 }
 
 .checkin-image {
-  width: 430px;
-  height: 316px;
+  width: min(100%, 392px);
+  height: auto;
+  display: block;
   object-fit: contain;
 }
 
