@@ -12,10 +12,11 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const NEWS_CACHE_TTL_MS = 10 * 60 * 1000;
 const WEATHER_CACHE_TTL_MS = 10 * 60 * 1000;
 const BBC_RSS_URL = "https://feeds.bbci.co.uk/news/rss.xml";
-const BBC_WEATHER_LOCATION_ID = "2636534";
-const BBC_WEATHER_FORECAST_URL = "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/" + BBC_WEATHER_LOCATION_ID;
-const BBC_WEATHER_OBSERVATION_URL = "https://weather-broker-cdn.api.bbci.co.uk/en/observation/rss/" + BBC_WEATHER_LOCATION_ID;
 const DEFAULT_SITE = "sunbury";
+const LOCATION_WEATHER_ID = {
+  sunbury: "2636534",
+  basingstoke: "2656192",
+};
 const STATUS_PRIORITY = {
   Grey: 0,
   Green: 1,
@@ -28,11 +29,16 @@ const SITE_CONFIG = {
     fallbackMessage: "Live traffic information is temporarily unavailable.",
     defaultItems: ["M3 Eastbound", "M3 Westbound", "Local Roads"],
   },
+  basingstoke: {
+    siteName: "Kinly Basingstoke",
+    fallbackMessage: "Live traffic information is temporarily unavailable.",
+    defaultItems: ["M3 Eastbound", "M3 Westbound", "Local Roads"],
+  },
 };
 
 const summaryCache = new Map();
 const newsCache = { cachedAt: 0, payload: null };
-const weatherCache = { cachedAt: 0, payload: null };
+const weatherCache = new Map();
 
 const rssParser = XMLParser
   ? new XMLParser({
@@ -75,6 +81,22 @@ function normaliseSite(site) {
   }
 
   return site.trim().toLowerCase();
+}
+
+function normaliseLocation(site) {
+  const normalised = normaliseSite(site);
+  return LOCATION_WEATHER_ID[normalised] ? normalised : DEFAULT_SITE;
+}
+
+function getWeatherUrls(site) {
+  const location = normaliseLocation(site);
+  const weatherId = LOCATION_WEATHER_ID[location];
+
+  return {
+    location: location,
+    forecastUrl: "https://weather-broker-cdn.api.bbci.co.uk/en/forecast/rss/3day/" + weatherId,
+    observationUrl: "https://weather-broker-cdn.api.bbci.co.uk/en/observation/rss/" + weatherId,
+  };
 }
 
 function asArray(value) {
@@ -159,16 +181,19 @@ function buildNewsFallbackPayload(limit) {
   };
 }
 
-function buildWeatherFallbackPayload() {
+function buildWeatherFallbackPayload(site) {
+  const urls = getWeatherUrls(site);
+  const siteConfig = SITE_CONFIG[urls.location] || SITE_CONFIG[DEFAULT_SITE];
+
   return {
     source: "BBC Weather",
-    location: "Sunbury",
+    location: siteConfig.siteName.replace(/^Kinly\s+/u, ""),
     condition: "Weather data unavailable",
     temperatureC: null,
     highC: null,
     lowC: null,
     lastUpdated: getCurrentUkTimestamp(),
-    feedUrl: BBC_WEATHER_FORECAST_URL,
+    feedUrl: urls.forecastUrl,
   };
 }
 
@@ -228,23 +253,28 @@ function extractObservationDetails(title) {
   };
 }
 
-async function getBbcWeather() {
+async function getBbcWeather(site) {
+  const resolvedSite = normaliseLocation(site);
+  const urls = getWeatherUrls(resolvedSite);
   const now = Date.now();
-  if (weatherCache.payload && now - weatherCache.cachedAt < WEATHER_CACHE_TTL_MS) {
-    return weatherCache.payload;
+  const cachedEntry = weatherCache.get(resolvedSite);
+  if (cachedEntry && now - cachedEntry.cachedAt < WEATHER_CACHE_TTL_MS) {
+    return cachedEntry.payload;
   }
 
   if (!rssParser) {
-    const fallbackNoParser = buildWeatherFallbackPayload();
-    weatherCache.cachedAt = now;
-    weatherCache.payload = fallbackNoParser;
+    const fallbackNoParser = buildWeatherFallbackPayload(resolvedSite);
+    weatherCache.set(resolvedSite, {
+      cachedAt: now,
+      payload: fallbackNoParser,
+    });
     return fallbackNoParser;
   }
 
   try {
     const values = await Promise.all([
-      requestText(BBC_WEATHER_FORECAST_URL),
-      requestText(BBC_WEATHER_OBSERVATION_URL),
+      requestText(urls.forecastUrl),
+      requestText(urls.observationUrl),
     ]);
 
     const forecastXml = values[0];
@@ -283,17 +313,21 @@ async function getBbcWeather() {
       highC: highC,
       lowC: lowC,
       lastUpdated: getCurrentUkTimestamp(),
-      feedUrl: BBC_WEATHER_FORECAST_URL,
+      feedUrl: urls.forecastUrl,
     };
 
-    weatherCache.cachedAt = now;
-    weatherCache.payload = payload;
+    weatherCache.set(resolvedSite, {
+      cachedAt: now,
+      payload: payload,
+    });
     return payload;
   } catch (error) {
     console.error("Unable to fetch BBC weather feed:", error);
-    const fallback = buildWeatherFallbackPayload();
-    weatherCache.cachedAt = now;
-    weatherCache.payload = fallback;
+    const fallback = buildWeatherFallbackPayload(resolvedSite);
+    weatherCache.set(resolvedSite, {
+      cachedAt: now,
+      payload: fallback,
+    });
     return fallback;
   }
 }
@@ -507,40 +541,68 @@ async function getTrafficSummary(site) {
 }
 
 async function getNationalHighwaysItems(site) {
-  if (site !== "sunbury") {
-    return [];
+  if (site === "sunbury") {
+    return [
+      {
+        label: "M3 Eastbound",
+        status: "Amber",
+        summary: "Delays reported around Sunbury Cross on the approach towards London.",
+        source: "National Highways",
+      },
+      {
+        label: "M3 Westbound",
+        status: "Green",
+        summary: "No major incidents currently reported towards Staines and the M25 link roads.",
+        source: "National Highways",
+      },
+    ];
   }
 
-  return [
-    {
-      label: "M3 Eastbound",
-      status: "Amber",
-      summary: "Delays reported around Sunbury Cross on the approach towards London.",
-      source: "National Highways",
-    },
-    {
-      label: "M3 Westbound",
-      status: "Green",
-      summary: "No major incidents currently reported towards Staines and the M25 link roads.",
-      source: "National Highways",
-    },
-  ];
+  if (site === "basingstoke") {
+    return [
+      {
+        label: "M3 Eastbound",
+        status: "Green",
+        summary: "Traffic is currently flowing well eastbound towards Hook and Fleet.",
+        source: "National Highways",
+      },
+      {
+        label: "M3 Westbound",
+        status: "Amber",
+        summary: "Minor delays reported westbound around peak times near Junction 7.",
+        source: "National Highways",
+      },
+    ];
+  }
+
+  return [];
 }
 
 async function getStreetManagerItems(site) {
-  if (site !== "sunbury") {
-    return [];
+  if (site === "sunbury") {
+    return [
+      {
+        label: "Local Roads",
+        status: "Amber",
+        summary: "Roadworks active near the office. Please check your route before leaving.",
+        source: "DfT Street Manager",
+      },
+    ];
   }
 
-  return [
-    {
-      label: "Local Roads",
-      status: "Amber",
-      summary: "Roadworks active near the office. Please check your route before leaving.",
-      source: "DfT Street Manager",
-    },
-  ];
-}
+  if (site === "basingstoke") {
+    return [
+      {
+        label: "Local Roads",
+        status: "Amber",
+        summary: "Planned works may cause short delays on local town routes.",
+        source: "DfT Street Manager",
+      },
+    ];
+  }
+
+    return [];
+  }
 
 function buildFallbackSummary(site) {
   const siteConfig = SITE_CONFIG[site] || SITE_CONFIG[DEFAULT_SITE];

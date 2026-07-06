@@ -1,6 +1,4 @@
-const API_URL = "/api/traffic-summary?site=sunbury";
 const NEWS_API_URL = "/api/news?limit=8";
-const WEATHER_API_URL = "/api/weather";
 const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const NEWS_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
@@ -8,6 +6,35 @@ const NEWS_SLIDE_INTERVAL_MS = 10 * 1000;
 const PAGE_RELOAD_INTERVAL_MS = 60 * 60 * 1000;
 const CLOCK_REFRESH_INTERVAL_MS = 15 * 1000;
 const UK_TIME_ZONE = "Europe/London";
+const DEFAULT_LOCATION = "sunbury";
+const LOCATION_CONFIG = {
+  sunbury: {
+    displayName: "Sunbury",
+    trafficLabels: ["M3 Eastbound", "M3 Westbound", "Local Roads"],
+  },
+  basingstoke: {
+    displayName: "Basingstoke",
+    trafficLabels: ["M3 Eastbound", "M3 Westbound", "Local Roads"],
+  },
+};
+
+function normaliseLocation(value) {
+  if (typeof value !== "string") {
+    return DEFAULT_LOCATION;
+  }
+
+  const trimmed = value.trim().toLowerCase();
+  return LOCATION_CONFIG[trimmed] ? trimmed : DEFAULT_LOCATION;
+}
+
+function resolveSelectedLocation() {
+  const params = new URLSearchParams(window.location.search);
+  return normaliseLocation(params.get("location"));
+}
+
+const selectedLocation = resolveSelectedLocation();
+const API_URL = `/api/traffic-summary?site=${encodeURIComponent(selectedLocation)}`;
+const WEATHER_API_URL = `/api/weather?location=${encodeURIComponent(selectedLocation)}`;
 
 const elements = {
   localDate: document.getElementById("local-date"),
@@ -22,6 +49,7 @@ const elements = {
   newsNext: document.getElementById("news-next"),
   logoImage: document.getElementById("kinly-logo-image"),
   logoFallbackMark: document.getElementById("kinly-logo-fallback-mark"),
+  welcomeCity: document.getElementById("welcome-city"),
 };
 
 const newsState = {
@@ -64,21 +92,23 @@ async function loadBrandLogo() {
 }
 
 function buildBrowserFallback() {
+  const labels = LOCATION_CONFIG[selectedLocation].trafficLabels;
+
   return {
     overallStatus: "Grey",
     items: [
       {
-        label: "M3 Northbound",
+        label: labels[0],
         status: "Grey",
         summary: "Live traffic data is currently unavailable.",
       },
       {
-        label: "M3 Southbound",
+        label: labels[1],
         status: "Grey",
         summary: "Live traffic data is currently unavailable.",
       },
       {
-        label: "Local Roads",
+        label: labels[2],
         status: "Grey",
         summary: "Live traffic data is currently unavailable.",
       },
@@ -108,12 +138,18 @@ function buildNewsFallback() {
 function buildWeatherFallback() {
   return {
     source: "BBC Weather",
-    location: "Sunbury",
+    location: LOCATION_CONFIG[selectedLocation].displayName,
     condition: "Weather data unavailable",
     temperatureC: null,
     highC: null,
     lowC: null,
   };
+}
+
+function applyLocationBranding() {
+  if (elements.welcomeCity) {
+    elements.welcomeCity.textContent = LOCATION_CONFIG[selectedLocation].displayName;
+  }
 }
 
 function escapeHtml(value) {
@@ -372,6 +408,7 @@ async function refreshWeather() {
   }
 }
 
+applyLocationBranding();
 updateClock();
 renderSummary(buildBrowserFallback());
 renderNews(buildNewsFallback());

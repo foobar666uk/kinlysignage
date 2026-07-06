@@ -1,7 +1,12 @@
-module.exports = async function (context) {
+module.exports = async function (context, req) {
+  const location = req && req.query && req.query.location ? String(req.query.location) : "sunbury";
+  const fallbackLocation = String(location).trim().toLowerCase() === "basingstoke"
+    ? "Basingstoke"
+    : "Sunbury";
+
   try {
     const api = require("../lib/data");
-    const payload = await api.getBbcWeather();
+    const payload = await api.getBbcWeather(location);
 
     context.res = {
       status: 200,
@@ -24,7 +29,7 @@ module.exports = async function (context) {
     },
     body: {
       source: "BBC Weather",
-      location: "Sunbury",
+      location: fallbackLocation,
       condition: "Weather data unavailable",
       temperatureC: null,
       highC: null,
