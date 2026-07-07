@@ -48,130 +48,171 @@
       </section>
 
       <section class="content-overlay" aria-label="Visitor essentials and local traffic">
-        <section class="info-cards-grid" aria-label="Visitor check-in information">
-          <article class="panel-card checkin-card">
-            <p class="panel-kicker">Visitor Check-In</p>
-            <figure class="checkin-visual">
-              <img src="./media/KinlyVisitorKioskV2.png" alt="Kinly visitor check-in kiosk" class="checkin-image" />
-              <figcaption class="checkin-caption">
-                <p class="checkin-title"><strong>Use the visitor kiosk below to register your arrival.</strong></p>
-                <ul class="checkin-steps">
-                  <li class="checkin-step-item">
-                    <span class="checkin-step-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M11 4.5a2.5 2.5 0 1 1 5 0v7.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M8 12.8v-1.1a2.9 2.9 0 1 1 5.8 0v1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M5.5 12.8h13v4.4A4.3 4.3 0 0 1 14.2 21H9.8a4.3 4.3 0 0 1-4.3-3.8v-4.4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-                      </svg>
-                    </span>
-                    <p class="checkin-step-text">Tap <strong>Check In</strong></p>
-                  </li>
-                  <li class="checkin-step-item">
-                    <span class="checkin-step-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="2" />
-                        <path d="M5.6 19.2a6.4 6.4 0 0 1 12.8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      </svg>
-                    </span>
-                    <p class="checkin-step-text">Enter your visitor details</p>
-                  </li>
-                  <li class="checkin-step-item">
-                    <span class="checkin-step-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="8" cy="9" r="2.6" stroke="currentColor" stroke-width="2" />
-                        <circle cx="16" cy="9" r="2.6" stroke="currentColor" stroke-width="2" />
-                        <path d="M3.8 18.6c.4-2.1 2.1-3.7 4.2-3.7s3.8 1.6 4.2 3.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M11.8 18.6c.4-2.1 2.1-3.7 4.2-3.7s3.8 1.6 4.2 3.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      </svg>
-                    </span>
-                    <p class="checkin-step-text">Select your host</p>
-                  </li>
-                  <li class="checkin-step-item">
-                    <span class="checkin-step-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 4.4a4.2 4.2 0 0 0-4.2 4.2v2.1L6 13v1.3h12V13l-1.8-2.3V8.6A4.2 4.2 0 0 0 12 4.4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-                        <path d="M9.5 14.3a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                      </svg>
-                    </span>
-                    <p class="checkin-step-text">Your host will be notified automatically</p>
-                  </li>
-                  <li class="checkin-step-item">
-                    <span class="checkin-step-icon" aria-hidden="true">
-                      <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M3.5 11.5V7.8A2.8 2.8 0 0 1 6.3 5h2.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M5.2 10.2L3.5 11.9 1.8 10.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M11 10.6h7.8a1.7 1.7 0 0 1 1.7 1.7v4.9a1.7 1.7 0 0 1-1.7 1.7H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                        <path d="M6.4 9.6h3.9v9.3H6.4a1.7 1.7 0 0 1-1.7-1.7v-5.9a1.7 1.7 0 0 1 1.7-1.7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
-                      </svg>
-                    </span>
-                    <p class="checkin-step-text">Please wait in the visitor lounge until you are collected</p>
-                  </li>
-                </ul>
-              </figcaption>
-            </figure>
-          </article>
-        </section>
+        <section id="content-pages" class="content-pages" aria-label="Rotating visitor pages">
+          <div class="content-page is-active" data-page-index="0">
+            <section class="info-cards-grid" aria-label="Visitor check-in information">
+              <article class="panel-card checkin-card">
+                <p class="panel-kicker">Visitor Check-In</p>
+                <figure class="checkin-visual">
+                  <img src="./media/KinlyVisitorKioskV2.png" alt="Kinly visitor check-in kiosk" class="checkin-image" />
+                  <figcaption class="checkin-caption">
+                    <p class="checkin-title"><strong>Use the visitor kiosk below to register your arrival.</strong></p>
+                    <ul class="checkin-steps">
+                      <li class="checkin-step-item">
+                        <span class="checkin-step-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M11 4.5a2.5 2.5 0 1 1 5 0v7.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <path d="M8 12.8v-1.1a2.9 2.9 0 1 1 5.8 0v1.1" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <path d="M5.5 12.8h13v4.4A4.3 4.3 0 0 1 14.2 21H9.8a4.3 4.3 0 0 1-4.3-3.8v-4.4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                          </svg>
+                        </span>
+                        <p class="checkin-step-text">Tap <strong>Check In</strong></p>
+                      </li>
+                      <li class="checkin-step-item">
+                        <span class="checkin-step-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="2" />
+                            <path d="M5.6 19.2a6.4 6.4 0 0 1 12.8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          </svg>
+                        </span>
+                        <p class="checkin-step-text">Enter your visitor details</p>
+                      </li>
+                      <li class="checkin-step-item">
+                        <span class="checkin-step-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="9" r="2.6" stroke="currentColor" stroke-width="2" />
+                            <circle cx="16" cy="9" r="2.6" stroke="currentColor" stroke-width="2" />
+                            <path d="M3.8 18.6c.4-2.1 2.1-3.7 4.2-3.7s3.8 1.6 4.2 3.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <path d="M11.8 18.6c.4-2.1 2.1-3.7 4.2-3.7s3.8 1.6 4.2 3.7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          </svg>
+                        </span>
+                        <p class="checkin-step-text">Select your host</p>
+                      </li>
+                      <li class="checkin-step-item">
+                        <span class="checkin-step-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 4.4a4.2 4.2 0 0 0-4.2 4.2v2.1L6 13v1.3h12V13l-1.8-2.3V8.6A4.2 4.2 0 0 0 12 4.4z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                            <path d="M9.5 14.3a2.5 2.5 0 0 0 5 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                          </svg>
+                        </span>
+                        <p class="checkin-step-text">Your host will be notified automatically</p>
+                      </li>
+                      <li class="checkin-step-item">
+                        <span class="checkin-step-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" class="checkin-step-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3.5 11.5V7.8A2.8 2.8 0 0 1 6.3 5h2.9" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <path d="M5.2 10.2L3.5 11.9 1.8 10.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M11 10.6h7.8a1.7 1.7 0 0 1 1.7 1.7v4.9a1.7 1.7 0 0 1-1.7 1.7H11" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                            <path d="M6.4 9.6h3.9v9.3H6.4a1.7 1.7 0 0 1-1.7-1.7v-5.9a1.7 1.7 0 0 1 1.7-1.7z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" />
+                          </svg>
+                        </span>
+                        <p class="checkin-step-text">Please wait in the visitor lounge for your host, and feel free to help yourself to refreshments in The Hub.</p>
+                      </li>
+                    </ul>
+                  </figcaption>
+                </figure>
+              </article>
+            </section>
 
-        <section class="top-cards-grid" aria-label="Visitor essentials">
-          <article class="panel-card wifi-card">
-            <p class="panel-kicker">Guest Wi-Fi</p>
-            <div class="wifi-detail-card" aria-label="Guest Wi-Fi network details">
-              <div class="wifi-main-icon" aria-hidden="true">
-                <svg viewBox="0 0 64 64" class="wifi-icon-svg">
-                  <defs>
-                    <linearGradient id="wifiOrb" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#25149A" />
-                      <stop offset="100%" stop-color="#280B56" />
-                    </linearGradient>
-                  </defs>
-                  <circle cx="32" cy="32" r="30" fill="url(#wifiOrb)" />
-                  <path class="wifi-wave wifi-wave-1" d="M14.5 24c10.4-9.2 24.6-9.2 35 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-                  <path class="wifi-wave wifi-wave-2" d="M21.5 32.2c6.7-6 14.3-6 21 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-                  <path class="wifi-wave wifi-wave-3" d="M27.2 40.5c3.2-2.7 6.4-2.7 9.6 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
-                  <circle class="wifi-dot" cx="32" cy="48" r="3.2" fill="#fff" />
+            <section class="top-cards-grid" aria-label="Visitor essentials">
+              <article class="panel-card wifi-card">
+                <p class="panel-kicker">Guest Wi-Fi</p>
+                <div class="wifi-detail-card" aria-label="Guest Wi-Fi network details">
+                  <div class="wifi-main-icon" aria-hidden="true">
+                    <svg viewBox="0 0 64 64" class="wifi-icon-svg">
+                      <defs>
+                        <linearGradient id="wifiOrb" x1="0" y1="0" x2="1" y2="1">
+                          <stop offset="0%" stop-color="#25149A" />
+                          <stop offset="100%" stop-color="#280B56" />
+                        </linearGradient>
+                      </defs>
+                      <circle cx="32" cy="32" r="30" fill="url(#wifiOrb)" />
+                      <path class="wifi-wave wifi-wave-1" d="M14.5 24c10.4-9.2 24.6-9.2 35 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+                      <path class="wifi-wave wifi-wave-2" d="M21.5 32.2c6.7-6 14.3-6 21 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+                      <path class="wifi-wave wifi-wave-3" d="M27.2 40.5c3.2-2.7 6.4-2.7 9.6 0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" />
+                      <circle class="wifi-dot" cx="32" cy="48" r="3.2" fill="#fff" />
+                    </svg>
+                  </div>
+                  <div class="wifi-detail-content">
+                    <div class="wifi-row">
+                      <span class="wifi-mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="wifi-mini-svg">
+                          <path d="M4 9.5c5.1-4.4 10.9-4.4 16 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                          <path d="M7 13.3c3.2-2.8 6.8-2.8 10 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                          <path d="M10.3 17.1c1.1-1 2.3-1 3.4 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                          <circle cx="12" cy="20" r="1.4" fill="currentColor" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p class="wifi-row-label">Network</p>
+                        <p class="wifi-row-value">Kinly-Guest</p>
+                      </div>
+                    </div>
+                    <div class="wifi-row">
+                      <span class="wifi-mini-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" class="wifi-mini-svg">
+                          <rect x="5.8" y="10.8" width="12.4" height="10.8" rx="2.4" fill="currentColor" />
+                          <path d="M8.2 10.8V7.8a3.8 3.8 0 0 1 7.6 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                          <circle cx="12" cy="15.9" r="1.2" fill="#25149A" />
+                        </svg>
+                      </span>
+                      <div>
+                        <p class="wifi-row-label">Password</p>
+                        <p class="wifi-row-value">@Kinly.1Like</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
+              <article class="panel-card onsite-card">
+                <p class="panel-kicker">Refreshments</p>
+                <div class="canteen-content">
+                  <span class="canteen-icon" aria-hidden="true">
+                    <svg viewBox="0 0 48 48" class="canteen-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 20h21a10 10 0 0 1-20 0z" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round" />
+                      <path d="M30 21h5a5.5 5.5 0 0 1 0 11h-5" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" />
+                      <path d="M8 34h28" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" />
+                      <path d="M16 10c0 2 1.2 3.2 1.2 5.2M22 8c0 2 1.2 3.2 1.2 5.2M28 10c0 2 1.2 3.2 1.2 5.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                    </svg>
+                  </span>
+                  <p class="canteen-copy">
+                    Please make yourself comfortable in our visitor lounge. Complimentary tea, coffee and refreshments are available in The Hub while you wait for your host.
+                  </p>
+                  <span class="canteen-arrow" aria-hidden="true">&#8594;</span>
+                </div>
+              </article>
+            </section>
+          </div>
+
+          <div class="content-page" data-page-index="1" aria-label="Fire evacuation page">
+            <article class="panel-card hub-card evac-card">
+              <p class="hub-card-title">Fire Evacuation</p>
+              <img src="./media/sunbury_evac.png" alt="Sunbury fire evacuation map" class="evac-image" />
+              <p class="hub-card-copy">In the event of an alarm, leave immediately via the nearest marked exit and proceed to the assembly point shown on this map.</p>
+            </article>
+          </div>
+
+          <div class="content-page" data-page-index="2" aria-label="The Hub refreshment page">
+            <article class="panel-card hub-card">
+              <div class="hub-card-icon" aria-hidden="true">
+                <span class="hub-steam hub-steam-1"></span>
+                <span class="hub-steam hub-steam-2"></span>
+                <span class="hub-steam hub-steam-3"></span>
+                <svg viewBox="0 0 280 220" class="hub-card-icon-svg" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <ellipse cx="124" cy="168" rx="88" ry="26" class="hub-icon-line" />
+                  <ellipse cx="124" cy="108" rx="68" ry="18" class="hub-icon-line" />
+                  <path d="M58 108v14c0 28 24 52 56 52h20c32 0 56-24 56-52v-14" class="hub-icon-line" stroke-linecap="round" />
+                  <path d="M190 118h20c20 0 34 12 34 30s-14 30-34 30h-29" class="hub-icon-line" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M44 168c18 24 48 38 82 38h8c36 0 66-14 84-38" class="hub-icon-line" stroke-linecap="round" />
+                  <ellipse cx="220" cy="188" rx="12" ry="8" class="hub-icon-bean" />
+                  <ellipse cx="246" cy="178" rx="11" ry="7" class="hub-icon-bean" />
                 </svg>
               </div>
-              <div class="wifi-detail-content">
-                <div class="wifi-row">
-                  <span class="wifi-mini-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" class="wifi-mini-svg">
-                      <path d="M4 9.5c5.1-4.4 10.9-4.4 16 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                      <path d="M7 13.3c3.2-2.8 6.8-2.8 10 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                      <path d="M10.3 17.1c1.1-1 2.3-1 3.4 0" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                      <circle cx="12" cy="20" r="1.4" fill="currentColor" />
-                    </svg>
-                  </span>
-                  <div>
-                    <p class="wifi-row-label">Network</p>
-                    <p class="wifi-row-value">Kinly-Guest</p>
-                  </div>
-                </div>
-                <div class="wifi-row">
-                  <span class="wifi-mini-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" class="wifi-mini-svg">
-                      <rect x="5.8" y="10.8" width="12.4" height="10.8" rx="2.4" fill="currentColor" />
-                      <path d="M8.2 10.8V7.8a3.8 3.8 0 0 1 7.6 0v3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                      <circle cx="12" cy="15.9" r="1.2" fill="#25149A" />
-                    </svg>
-                  </span>
-                  <div>
-                    <p class="wifi-row-label">Password</p>
-                    <p class="wifi-row-value">@Kinly.1Like</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <article class="panel-card onsite-card">
-            <p class="panel-kicker">Refreshments</p>
-            <div class="canteen-content">
-              <p class="canteen-copy">
-                Please make yourself comfortable in our visitor lounge. Complimentary tea, coffee and refreshments are available in the refreshments area while you wait for your host.
-              </p>
-              <span class="canteen-arrow" aria-hidden="true">&#8594;</span>
-            </div>
-          </article>
+              <p class="hub-card-title">The Hub</p>
+              <p class="hub-card-copy">To your right is The Hub, please help yourself to refreshments.</p>
+            </article>
+          </div>
         </section>
 
         <section class="traffic-strip panel-card" aria-live="polite">

@@ -3,6 +3,7 @@ const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
 const NEWS_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 const WEATHER_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 const NEWS_SLIDE_INTERVAL_MS = 10 * 1000;
+const CONTENT_PAGE_FLIP_INTERVAL_MS = 30 * 1000;
 const PAGE_RELOAD_INTERVAL_MS = 60 * 60 * 1000;
 const CLOCK_REFRESH_INTERVAL_MS = 15 * 1000;
 const UK_TIME_ZONE = "Europe/London";
@@ -50,10 +51,16 @@ const elements = {
   logoImage: document.getElementById("kinly-logo-image"),
   logoFallbackMark: document.getElementById("kinly-logo-fallback-mark"),
   welcomeCity: document.getElementById("welcome-city"),
+  contentPages: Array.from(document.querySelectorAll(".content-page")),
 };
 
 const newsState = {
   items: [],
+  index: 0,
+  timerId: null,
+};
+
+const contentPageState = {
   index: 0,
   timerId: null,
 };
@@ -351,6 +358,34 @@ function bindNewsControls() {
   });
 }
 
+function showContentPage(index) {
+  if (!elements.contentPages.length) {
+    return;
+  }
+
+  contentPageState.index = (index + elements.contentPages.length) % elements.contentPages.length;
+
+  elements.contentPages.forEach((panel, panelIndex) => {
+    panel.classList.toggle("is-active", panelIndex === contentPageState.index);
+  });
+}
+
+function startContentPageRotation() {
+  if (contentPageState.timerId) {
+    window.clearInterval(contentPageState.timerId);
+    contentPageState.timerId = null;
+  }
+
+  if (elements.contentPages.length < 2) {
+    return;
+  }
+
+  showContentPage(contentPageState.index);
+  contentPageState.timerId = window.setInterval(() => {
+    showContentPage(contentPageState.index + 1);
+  }, CONTENT_PAGE_FLIP_INTERVAL_MS);
+}
+
 async function refreshTrafficSummary() {
   try {
     const response = await fetch(API_URL, {
@@ -417,6 +452,7 @@ refreshTrafficSummary();
 refreshNews();
 refreshWeather();
 bindNewsControls();
+startContentPageRotation();
 void loadBrandLogo();
 window.setInterval(updateClock, CLOCK_REFRESH_INTERVAL_MS);
 window.setInterval(refreshTrafficSummary, REFRESH_INTERVAL_MS);

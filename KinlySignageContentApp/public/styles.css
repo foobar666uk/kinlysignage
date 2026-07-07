@@ -62,8 +62,8 @@ body {
   width: 1080px;
   height: 1920px;
   display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 28px;
+  grid-template-rows: 300px 1fr;
+  gap: 24px;
   padding: 62px 56px 36px;
 }
 
@@ -208,8 +208,25 @@ body {
 
 .content-overlay {
   display: grid;
-  align-content: start;
-  gap: 24px;
+  grid-template-rows: 910px 250px 290px;
+  gap: 18px;
+  height: 100%;
+  padding-top: 10px;
+}
+
+.content-pages {
+  display: grid;
+  height: 910px;
+}
+
+.content-page {
+  display: none;
+  gap: 18px;
+  height: 100%;
+}
+
+.content-page.is-active {
+  display: grid;
 }
 
 .top-cards-grid,
@@ -217,10 +234,157 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+  height: 100%;
+}
+
+.content-page[data-page-index="0"] {
+  grid-template-rows: 620px 282px;
 }
 
 .info-cards-grid .checkin-card {
   grid-column: 1 / -1;
+}
+
+.hub-card {
+  min-height: 910px;
+  padding: 34px 36px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  text-align: center;
+  gap: 18px;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(193, 236, 249, 0.15), transparent 45%),
+    radial-gradient(circle at 18% 75%, rgba(37, 20, 154, 0.35), transparent 52%),
+    linear-gradient(150deg, rgba(37, 20, 154, 0.24), var(--card));
+}
+
+.evac-card {
+  align-content: start;
+  padding-top: 28px;
+}
+
+.evac-image {
+  width: min(100%, 780px);
+  max-height: 560px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 14px;
+  border: 1px solid rgba(193, 236, 249, 0.28);
+  box-shadow: 0 12px 26px rgba(7, 9, 39, 0.42);
+  background: rgba(9, 5, 34, 0.44);
+  padding: 8px;
+}
+
+.hub-card-icon {
+  color: var(--powder-blue);
+  width: min(100%, 360px);
+  height: 240px;
+  position: relative;
+}
+
+.hub-card-icon-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 8px 12px rgba(7, 9, 39, 0.4));
+}
+
+.hub-icon-line,
+.hub-icon-bean {
+  stroke: currentColor;
+  stroke-width: 6;
+}
+
+.hub-icon-bean {
+  fill: none;
+  opacity: 0.95;
+}
+
+.hub-steam {
+  position: absolute;
+  bottom: 146px;
+  width: 28px;
+  height: 102px;
+  border-radius: 50%;
+  border: 5px solid transparent;
+  border-left-color: currentColor;
+  border-right-color: currentColor;
+  opacity: 0;
+  filter: blur(0.3px);
+  animation: steam-rise 3.8s ease-in-out infinite;
+}
+
+.hub-steam-1 {
+  left: 116px;
+  transform: rotate(-10deg);
+  animation-delay: 0s;
+}
+
+.hub-steam-2 {
+  left: 160px;
+  transform: rotate(4deg);
+  animation-delay: 1.2s;
+}
+
+.hub-steam-3 {
+  left: 200px;
+  transform: rotate(14deg);
+  animation-delay: 2.4s;
+}
+
+@keyframes steam-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.9);
+  }
+  20% {
+    opacity: 0.7;
+  }
+  60% {
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px) scale(1.08);
+  }
+}
+
+.hub-card-title,
+.hub-card-copy {
+  margin: 0;
+}
+
+.hub-card-title {
+  color: var(--white);
+  font: 700 4.8rem/1.02 var(--headline-font);
+  letter-spacing: -0.025em;
+}
+
+.hub-card-copy {
+  max-width: 780px;
+  color: var(--ink-soft);
+  font-size: 2.3rem;
+  line-height: 1.24;
+}
+
+@media (max-width: 1100px) {
+  .hub-card-icon {
+    width: min(100%, 300px);
+    height: 212px;
+  }
+
+  .hub-steam-1 {
+    left: 84px;
+  }
+
+  .hub-steam-2 {
+    left: 128px;
+  }
+
+  .hub-steam-3 {
+    left: 168px;
+  }
 }
 
 .panel-card {
@@ -244,29 +408,30 @@ body {
 .location-card,
 .onsite-card {
   padding: 24px;
+  height: 100%;
 }
 
 .checkin-card {
-  padding: 20px 14px 18px;
+  padding: 22px 20px 20px;
   background:
     radial-gradient(circle at 18% 62%, rgba(37, 20, 154, 0.35), transparent 48%),
     linear-gradient(150deg, rgba(37, 20, 154, 0.2), var(--card));
 }
 
 .checkin-visual {
-  margin: 12px 0 0;
+  margin: 16px 0 0;
   display: grid;
-  grid-template-columns: 344px minmax(0, 1fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   align-items: start;
-  gap: 8px;
+  gap: 22px;
 }
 
 .checkin-image {
-  width: min(100%, 344px);
+  width: min(100%, 340px);
   height: auto;
   display: block;
   justify-self: center;
-  transform: scale(1.07);
+  transform: scale(1.02);
   transform-origin: center;
   object-fit: contain;
 }
@@ -274,8 +439,8 @@ body {
 .checkin-caption {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 1.36rem;
-  line-height: 1.32;
+  font-size: 1.42rem;
+  line-height: 1.36;
 }
 
 .checkin-title,
@@ -285,7 +450,7 @@ body {
 
 .checkin-title {
   color: var(--white);
-  font: 700 2.16rem/1.08 var(--headline-font);
+  font: 700 2.24rem/1.1 var(--headline-font);
 }
 
 .checkin-intro {
@@ -293,7 +458,7 @@ body {
 }
 
 .checkin-steps {
-  margin: 18px 0 0;
+  margin: 20px 0 0;
   padding: 0;
   list-style: none;
   display: grid;
@@ -302,10 +467,10 @@ body {
 
 .checkin-step-item {
   display: grid;
-  grid-template-columns: 46px 1fr;
+  grid-template-columns: 50px 1fr;
   align-items: center;
-  gap: 12px;
-  padding: 7px 0;
+  gap: 14px;
+  padding: 10px 0;
   border-bottom: 1px solid rgba(193, 236, 249, 0.22);
 }
 
@@ -314,8 +479,8 @@ body {
 }
 
 .checkin-step-icon {
-  width: 42px;
-  height: 42px;
+  width: 46px;
+  height: 46px;
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -326,15 +491,15 @@ body {
 }
 
 .checkin-step-svg {
-  width: 22px;
-  height: 22px;
+  width: 23px;
+  height: 23px;
 }
 
 .checkin-step-text {
   margin: 0;
   color: var(--ink-soft);
-  font-size: 1.06em;
-  line-height: 1.28;
+  font-size: 1.14em;
+  line-height: 1.3;
 }
 
 .checkin-step-text strong {
@@ -482,9 +647,27 @@ body {
 .canteen-content {
   margin-top: 16px;
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 44px 1fr auto;
   gap: 14px;
   align-items: center;
+}
+
+.canteen-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--powder-blue);
+  border: 1px solid rgba(193, 236, 249, 0.28);
+  background: linear-gradient(160deg, var(--kinly-blue), var(--deep-purple));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.canteen-icon-svg {
+  width: 26px;
+  height: 26px;
+  display: block;
 }
 
 .canteen-copy {
@@ -517,6 +700,7 @@ body {
 
 .traffic-strip {
   padding: 18px 24px 20px;
+  height: 100%;
 }
 
 .traffic-details {
@@ -590,12 +774,14 @@ body {
 .news-wrap {
   display: grid;
   gap: 12px;
+  height: 100%;
 }
 
 .news-card {
   position: relative;
   padding: 20px 24px 28px;
-  min-height: 212px;
+  min-height: 0;
+  height: 100%;
 }
 
 .news-kicker {
